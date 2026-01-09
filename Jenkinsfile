@@ -5,9 +5,14 @@ pipeline {
         nodejs 'NodeJS'
     }
 
+    environment {
+        CI = 'true'
+        APP_PORT = '3000'
+    }
+
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout SCM') {
             steps {
                 checkout scm
             }
@@ -17,22 +22,48 @@ pipeline {
             steps {
                 sh '''
                   npm install
-                  npx playwright install
+                  npx playwright install --with-deps
                 '''
             }
         }
 
-        stage('Run Tests') {
+        stage('Start App for Tests') {
             steps {
-                sh 'npx playwright test'
+                sh '''
+                  echo "Starting app in background..."
+                  nohup npm start > app.log 2>&1 &
+                  sleep 10
+                '''
+            }
+        }
+
+        stage('Run Playwright Tests') {
+            steps {
+                sh '''
+                  echo "Running Playwright tests..."
+                  npx playwright test
+                '''
+            }
+        }
+
+        stage('Stop Test App') {
+            steps {
+                sh '''
+                  echo "Stopping test app..."
+                  pkill -f "node" || true
+                '''
             }
         }
 
         stage('Deploy with PM2') {
+            when {
+                expression { currentBuild.currentResult == 'SUCCESS' }
+            }
             steps {
                 sh '''
+                  echo "Deploying with PM2..."
                   pm2 delete student-tool || true
-                  pm2 start ecosystem.config.js
+                  pm2 start npm --name student-tool -- start
                   pm2 save
                 '''
             }
@@ -41,10 +72,13 @@ pipeline {
 
     post {
         success {
-            echo '✅ Build & Deployment Successful'
+            echo '✅ CI/CD pipeline SUCCESS'
         }
         failure {
-            echo '❌ Deployment Failed'
+            echo '❌ CI/CD pipeline FAILED'
+        }
+        always {
+            echo 'Pipeline finished'
         }
     }
 }

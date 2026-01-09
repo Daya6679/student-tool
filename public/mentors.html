@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Tool - Mentors</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    h2 {
+      color: #34495e;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+    }
+    form {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #ecf0f1;
+      border-radius: 5px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #bdc3c7;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .export-btn {
+      background-color: #2ecc71;
+    }
+    .export-btn:hover {
+      background-color: #27ae60;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #34495e;
+      color: white;
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    tr:hover {
+      background-color: #e8f4fd;
+    }
+    .actions button {
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+    .edit-btn {
+      background-color: #f39c12;
+    }
+    .edit-btn:hover {
+      background-color: #e67e22;
+    }
+    .delete-btn {
+      background-color: #e74c3c;
+    }
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 8px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+    }
+    nav {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #3498db;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <a href="/">Students</a> | <a href="/mentors.html">Mentors</a>
+    </nav>
+    <h1>Mentor Admin Tool</h1>
+
+    <h2>Add Mentor</h2>
+    <form id="addMentorForm">
+      <div class="form-group">
+        <label for="name">Name:</label>
+        <input type="text" id="name" required>
+      </div>
+      <div class="form-group">
+        <label for="mentor_id">Mentor ID:</label>
+        <input type="text" id="mentor_id" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone:</label>
+        <input type="text" id="phone" required maxlength="10">
+      </div>
+      <div class="form-group">
+        <label for="subjects">Subjects:</label>
+        <input type="text" id="subjects" required>
+      </div>
+      <button type="submit">Add Mentor</button>
+    </form>
+
+    <h2>Mentors List</h2>
+    <button id="exportBtn" class="export-btn">Export to CSV</button>
+    <table id="mentorsTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Mentor ID</th>
+          <th>Phone</th>
+          <th>Subjects</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Edit Mentor</h2>
+      <form id="editForm">
+        <div class="form-group">
+          <label for="editName">Name:</label>
+          <input type="text" id="editName" required>
+        </div>
+        <div class="form-group">
+          <label for="editMentorId">Mentor ID:</label>
+          <input type="text" id="editMentorId" required>
+        </div>
+        <div class="form-group">
+          <label for="editPhone">Phone:</label>
+          <input type="tel" id="editPhone" pattern="[0-9]{10}" title="Please enter exactly 10 digits" required>
+        </div>
+        <div class="form-group">
+          <label for="editSubjects">Subjects:</label>
+          <input type="text" id="editSubjects" required>
+        </div>
+        <button type="submit">Update Mentor</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('addMentorForm');
+    const tableBody = document.querySelector('#mentorsTable tbody');
+    const exportBtn = document.getElementById('exportBtn');
+    const modal = document.getElementById('editModal');
+    const editForm = document.getElementById('editForm');
+    const closeBtn = document.getElementsByClassName('close')[0];
+    let currentEditId = null;
+    const phoneInput = document.getElementById('phone');
+
+    // Allow only digits in phone input
+    phoneInput.addEventListener('input', () => {
+      phoneInput.value = phoneInput.value.replace(/\D/g, '');
+    });
+
+    // Load mentors on page load
+    loadMentors();
+
+    // Modal close
+    closeBtn.onclick = function() {
+      modal.style.display = "none";
+    }
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    // Edit form submit
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('editName').value;
+      const mentor_id = document.getElementById('editMentorId').value;
+      const phone = document.getElementById('editPhone').value;
+      const subjects = document.getElementById('editSubjects').value;
+
+      if (phone.length !== 10 || !/^\d{10}$/.test(phone)) {
+        alert('Phone number must be exactly 10 digits.');
+        return;
+      }
+
+      const response = await fetch(`/api/mentors/${currentEditId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, mentor_id, phone, subjects })
+      });
+
+      if (response.ok) {
+        modal.style.display = "none";
+        loadMentors();
+      } else {
+        alert('Error updating mentor');
+      }
+    });
+
+    // Add mentor
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const mentor_id = document.getElementById('mentor_id').value;
+      const phone = phoneInput.value;
+      const subjects = document.getElementById('subjects').value;
+
+      // Phone validation (exactly 10 digits)
+      if (!/^\d{10}$/.test(phone)) {
+        alert('Phone number must be exactly 10 digits');
+        return;
+      }
+
+      const response = await fetch('/api/mentors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, mentor_id, phone, subjects })
+      });
+
+      if (response.ok) {
+        form.reset();
+        loadMentors();
+      } else {
+        alert('Error adding mentor');
+      }
+    });
+
+    // Load mentors
+    async function loadMentors() {
+      const response = await fetch('/api/mentors');
+      const mentors = await response.json();
+      tableBody.innerHTML = '';
+      mentors.forEach(mentor => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${mentor.name}</td>
+          <td>${mentor.mentor_id}</td>
+          <td>${mentor.phone}</td>
+          <td>${mentor.subjects}</td>
+          <td class="actions">
+            <button class="edit-btn" onclick="editMentor('${mentor.id}')">Edit</button>
+            <button class="delete-btn" onclick="deleteMentor('${mentor.id}')">Delete</button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Edit mentor
+    async function editMentor(id) {
+      const response = await fetch('/api/mentors');
+      const mentors = await response.json();
+      const mentor = mentors.find(m => m.id === id);
+
+      if (mentor) {
+        currentEditId = id;
+        document.getElementById('editName').value = mentor.name;
+        document.getElementById('editMentorId').value = mentor.mentor_id;
+        document.getElementById('editPhone').value = mentor.phone;
+        document.getElementById('editSubjects').value = mentor.subjects;
+        modal.style.display = "block";
+      }
+    }
+
+    // Delete mentor
+    async function deleteMentor(id) {
+      if (confirm('Are you sure you want to delete this mentor?')) {
+        const response = await fetch(`/api/mentors/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          loadMentors();
+        } else {
+          alert('Error deleting mentor');
+        }
+      }
+    }
+
+    // Export to CSV
+    exportBtn.addEventListener('click', () => {
+      window.location.href = '/api/mentors/export';
+    });
+  </script>
+</body>
+</html>
