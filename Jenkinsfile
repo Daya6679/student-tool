@@ -6,33 +6,24 @@ pipeline {
     }
 
     environment {
+        NODE_ENV = 'production'
         CI = 'true'
-        APP_PORT = '3000'
     }
 
     stages {
 
-        stage('Checkout SCM') {
+        stage('Checkout Code') {
             steps {
-                checkout scm
+                git branch: 'main',
+                    url: 'https://github.com/Daya6679/student-tool.git'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 sh '''
-                  npm install
-                  npx playwright install --with-deps
-                '''
-            }
-        }
-
-        stage('Start App for Tests') {
-            steps {
-                sh '''
-                  echo "Starting app in background..."
-                  nohup npm start > app.log 2>&1 &
-                  sleep 10
+                    npm install
+                    npx playwright install
                 '''
             }
         }
@@ -40,45 +31,32 @@ pipeline {
         stage('Run Playwright Tests') {
             steps {
                 sh '''
-                  echo "Running Playwright tests..."
-                  npx playwright test
-                '''
-            }
-        }
-
-        stage('Stop Test App') {
-            steps {
-                sh '''
-                  echo "Stopping test app..."
-                  pkill -f "node" || true
+                    npx playwright test --reporter=html
                 '''
             }
         }
 
         stage('Deploy with PM2') {
-            when {
-                expression { currentBuild.currentResult == 'SUCCESS' }
-            }
             steps {
                 sh '''
-                  echo "Deploying with PM2..."
-                  pm2 delete student-tool || true
-                  pm2 start npm --name student-tool -- start
-                  pm2 save
+                    npm install -g pm2 || true
+                    pm2 delete student-tool || true
+                    pm2 start ecosystem.config.js
+                    pm2 save
                 '''
             }
         }
     }
 
     post {
+        always {
+            archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
+        }
         success {
-            echo '✅ CI/CD pipeline SUCCESS'
+            echo '✅ CI/CD SUCCESS: Tests passed & App deployed'
         }
         failure {
-            echo '❌ CI/CD pipeline FAILED'
-        }
-        always {
-            echo 'Pipeline finished'
+            echo '❌ CI/CD FAILED: Check test results'
         }
     }
 }

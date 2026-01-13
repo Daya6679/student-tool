@@ -2,12 +2,9 @@ module.exports = {
   apps: [
     {
       name: "student-tool",
-      script: "app.js",
-      instances: 1,
-      exec_mode: "fork",
+      script: "index.js",
       env: {
-        NODE_ENV: "production",
-        PORT: 3000
+        PORT: 3001   // Change this port as needed
       }
     }
   ]
