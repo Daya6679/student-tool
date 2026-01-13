@@ -10,3 +10,4 @@ This is a ready-to-run Playwright project where all tests **always pass**.
 git clone <your-repo-url>
 cd playwright-always-pass
 # student-tool
+# test webhook
